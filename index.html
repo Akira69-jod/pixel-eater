@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Eater</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .title {
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 3px 3px 10px rgba(255, 255, 255, 0.7);
+            animation: pulse 2s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .play-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 24px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+        .play-button:hover {
+            transform: scale(1.1);
+        }
+        .game-container {
+            display: none;
+            position: relative;
+            width: 400px;
+            height: 400px;
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(20, 1fr);
+            border: 4px solid white;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .pixel {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: background-color 0.2s;
+        }
+        .player {
+            background-color: red;
+            border-radius: 50%;
+            box-shadow: 0px 0px 10px red;
+        }
+        .eaten {
+            background-color: black !important;
+        }
+        .enemy {
+            background-color: blue;
+            border-radius: 50%;
+            box-shadow: 0px 0px 10px blue;
+        }
+        .controls {
+            display: none;
+            margin-top: 20px;
+        }
+        .controls button {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            margin: 5px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <div class="title">Pixel Eater</div>
+        <button class="play-button" onclick="startGame()">Play</button>
+    </div>
+    
+    <div class="game-container" id="gameContainer"></div>
+    
+    <div class="controls" id="controls">
+        <button onclick="move('up')">▲</button><br>
+        <button onclick="move('left')">◄</button>
+        <button onclick="move('down')">▼</button>
+        <button onclick="move('right')">►</button>
+    </div>
+    
+    <script>
+        const gridSize = 20;
+        const gameContainer = document.getElementById("gameContainer");
+        let playerPos = { x: 10, y: 10 };
+        let enemies = [{ x: 5, y: 5 }, { x: 15, y: 15 }];
+
+        function startGame() {
+            document.getElementById("startScreen").style.display = "none";
+            gameContainer.style.display = "grid";
+            document.getElementById("controls").style.display = "block";
+            gameContainer.innerHTML = "";
+            createGrid();
+        }
+
+        function createGrid() {
+            for (let i = 0; i < gridSize * gridSize; i++) {
+                const pixel = document.createElement("div");
+                pixel.classList.add("pixel");
+                pixel.dataset.index = i;
+                gameContainer.appendChild(pixel);
+            }
+            updateGame();
+        }
+
+        function updateGame() {
+            document.querySelectorAll(".pixel").forEach(pixel => {
+                pixel.classList.remove("player", "enemy");
+            });
+            
+            let playerIndex = playerPos.y * gridSize + playerPos.x;
+            let playerPixel = document.querySelector(`[data-index='${playerIndex}']`);
+            playerPixel.classList.add("player");
+            playerPixel.classList.add("eaten");
+            
+            enemies.forEach(enemy => {
+                let enemyIndex = enemy.y * gridSize + enemy.x;
+                let enemyPixel = document.querySelector(`[data-index='${enemyIndex}']`);
+                enemyPixel.classList.add("enemy");
+
+                if (enemy.x === playerPos.x && enemy.y === playerPos.y) {
+                    alert("Game Over! Restarting...");
+                    location.reload();
+                }
+            });
+        }
+
+        function moveEnemies() {
+            enemies.forEach(enemy => {
+                if (enemy.x < playerPos.x) enemy.x++;
+                else if (enemy.x > playerPos.x) enemy.x--;
+                
+                if (enemy.y < playerPos.y) enemy.y++;
+                else if (enemy.y > playerPos.y) enemy.y--;
+            });
+        }
+
+        function move(direction) {
+            if (direction === 'up' && playerPos.y > 0) playerPos.y--;
+            if (direction === 'down' && playerPos.y < gridSize - 1) playerPos.y++;
+            if (direction === 'left' && playerPos.x > 0) playerPos.x--;
+            if (direction === 'right' && playerPos.x < gridSize - 1) playerPos.x++;
+            moveEnemies();
+            updateGame();
+        }
+    </script>
+</body>
+</html>
